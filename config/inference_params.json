@@ -1,0 +1,31 @@
+{
+  "_comment": "Parâmetros de INFERÊNCIA enviados a cada requisição HTTP ao llama-server, além de parâmetros de comportamento do cliente Python (timeout/retry).",
+
+  "temperature": 0.2,
+  "top_p": 0.9,
+  "top_k": 40,
+  "min_p": 0.05,
+  "repeat_penalty": 1.1,
+  "max_tokens": 400,
+  "seed": -1,
+
+  "_client_comment": "Parâmetros do cliente HTTP Python (não enviados ao llama-server, controlam o comportamento das requisições).",
+  "request_timeout_seconds": 120,
+  "connect_timeout_seconds": 10,
+  "max_retries": 2,
+  "retry_backoff_seconds": 3,
+
+  "_glossario": {
+    "temperature": "Aleatoriedade da geração. Valores baixos (0.0-0.3) recomendados para classificação determinística/consistente.",
+    "top_p": "Nucleus sampling: considera o menor conjunto de tokens cuja probabilidade acumulada >= top_p.",
+    "top_k": "Considera apenas os top_k tokens mais prováveis a cada passo.",
+    "min_p": "Probabilidade mínima relativa ao token mais provável para um token ser considerado.",
+    "repeat_penalty": "Penaliza tokens repetidos recentemente, para evitar loops de repetição no campo 'reasoning'.",
+    "max_tokens": "Limite máximo de tokens gerados na resposta (n_predict no llama-server).",
+    "seed": "Semente do gerador aleatório. -1 = aleatória a cada chamada; fixe um valor inteiro para reprodutibilidade.",
+    "request_timeout_seconds": "Tempo máximo de espera pela resposta completa do llama-server antes de abortar a requisição.",
+    "connect_timeout_seconds": "Tempo máximo de espera para estabelecer a conexão TCP com o llama-server.",
+    "max_retries": "Número de novas tentativas em caso de timeout ou erro de conexão, antes de marcar o evento como falho.",
+    "retry_backoff_seconds": "Tempo de espera entre tentativas (multiplicado pelo número da tentativa, backoff linear)."
+  }
+}

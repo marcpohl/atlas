@@ -1,0 +1,34 @@
+{
+  "_comment": "Parâmetros de HARDWARE/SISTEMA usados para SUBIR o llama-server (não são enviados por requisição HTTP -- são passados como argumentos de linha de comando no momento em que o servidor carrega o modelo). Usados pelo scripts/start_server.py para montar o comando de inicialização. Se precisar de valores diferentes por modelo, adicione uma seção 'overrides' com o alias do modelo.",
+
+  "defaults": {
+    "n_ctx": 8192,
+    "n_threads": 8,
+    "n_threads_batch": 8,
+    "n_gpu_layers": 35,
+    "n_batch": 512,
+    "n_ubatch": 512,
+    "use_mmap": true,
+    "use_mlock": false,
+    "flash_attn": true
+  },
+
+  "overrides": {
+    "_exemplo_alias_do_modelo": {
+      "n_gpu_layers": 0,
+      "_comment": "Exemplo: forçar CPU-only (n_gpu_layers=0) apenas para este modelo especifico, sobrescrevendo o default acima."
+    }
+  },
+
+  "_glossario": {
+    "n_ctx": "Tamanho da janela de contexto em tokens (prompt + resposta). Deve ser >= ao context_length declarado no models.json.",
+    "n_threads": "Threads de CPU usadas para geração (decode). Recomendado: núcleos físicos disponíveis, não threads lógicas (SMT/HyperThreading).",
+    "n_threads_batch": "Threads de CPU usadas para processamento do prompt (prefill/batch). Pode ser igual ou maior que n_threads.",
+    "n_gpu_layers": "Número de camadas do modelo offloaded para GPU. 0 = CPU only. Use um valor alto (ex.: 99) para offload total se a VRAM comportar o modelo inteiro.",
+    "n_batch": "Tamanho máximo do batch lógico de tokens processados de uma vez (logical batch size).",
+    "n_ubatch": "Tamanho do micro-batch físico (physical batch size); afeta uso de memória e paralelismo interno.",
+    "use_mmap": "Usa memory-mapped I/O para carregar o modelo (reduz uso de RAM, carregamento mais rápido). Recomendado: true.",
+    "use_mlock": "Trava o modelo em RAM física, evitando swap (útil em servidores dedicados com RAM suficiente). Recomendado: false, a menos que tenha RAM de sobra.",
+    "flash_attn": "Habilita Flash Attention (mais rápido e usa menos memória em GPUs compatíveis). Recomendado: true se a GPU suportar."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_comment": "Registro dos modelos GGUF disponíveis localmente. Cada alias corresponde a uma instância do llama-server rodando com AQUELE modelo carregado em uma porta específica. Um servidor llama-server = um modelo carregado. Para usar mais de um modelo simultaneamente, suba múltiplas instâncias em portas diferentes e registre cada uma aqui.",
+
+  "models": {
+    "qwen3.5-9B": {
+      "gguf_path": "/models/Qwen3.5-9B-UD-Q5_K_XL.gguf",
+      "server_host": "127.0.0.1",
+      "server_port": 8080,
+      "chat_format": "chatml",
+      "context_length": 8192,
+      "description": "Qwen3.5-9B, quantização Q5_K_XL"
+    },
+    "autoglm-phone-9b": {
+      "gguf_path": "/models/AutoGLM-Phone-9B-Q5_K_M.gguf",
+      "server_host": "127.0.0.1",
+      "server_port": 8081,
+      "chat_format": "glm4",
+      "context_length": 8192,
+      "description": "AutoGLM-Phone-9B (GLM-4, originalmente treinado como agente de GUI de celular)
+  },
+
+  "_chat_format_options": [
+    "qwen3",
+    "glm",
+    "raw"
+  ],
+  "_chat_format_help": "raw = concatenação simples de system+user sem tags especiais de template (use se o modelo não tiver um formato de chat conhecido ou se preferir controle manual total)."
+}
