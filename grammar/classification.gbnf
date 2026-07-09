@@ -1,0 +1,47 @@
+# =============================================================================
+# classification.gbnf
+# Gramática GBNF (Grammar-Based Normal Form) para Grammar Constrained Decoding
+# no llama.cpp (llama-server), usada para forçar a saída do modelo a seguir
+# estritamente o schema JSON de classificação de eventos de segurança.
+#
+# Saída forçada:
+# {
+#   "classification": "True_Positive" | "False_Positive" | "Benign" | "Needs_Investigation",
+#   "mitre_tactic": "<uma das 14 táticas MITRE ATT&CK Enterprise>",
+#   "mitre_technique": "T####" ou "T####.###" (ID de técnica/sub-técnica),
+#   "confidence": 0.00 a 1.00 (duas casas decimais),
+#   "reasoning": "<texto livre, até 500 caracteres>"
+# }
+#
+# Cada regra é escrita em uma ÚNICA LINHA. Alguns builds/versões do
+# llama-server têm um parser de gramática mais rígido que não trata
+# corretamente a continuação de uma regra em múltiplas linhas (ex.:
+# alternativas "|" começando em uma nova linha) -- por isso todas as
+# regras aqui evitam quebras de linha no meio da definição.
+# =============================================================================
+
+root ::= "{" ws "\"classification\":" ws classification "," ws "\"mitre_tactic\":" ws tactic "," ws "\"mitre_technique\":" ws technique "," ws "\"confidence\":" ws confidence "," ws "\"reasoning\":" ws reasoning ws "}"
+
+# --- classification: enum fechado -------------------------------------------
+classification ::= "\"True_Positive\"" | "\"False_Positive\"" | "\"Benign\"" | "\"Needs_Investigation\""
+
+# --- mitre_tactic: enum fechado com as 14 táticas MITRE ATT&CK Enterprise ---
+tactic ::= "\"Reconnaissance\"" | "\"Resource_Development\"" | "\"Initial_Access\"" | "\"Execution\"" | "\"Persistence\"" | "\"Privilege_Escalation\"" | "\"Defense_Evasion\"" | "\"Credential_Access\"" | "\"Discovery\"" | "\"Lateral_Movement\"" | "\"Collection\"" | "\"Command_And_Control\"" | "\"Exfiltration\"" | "\"Impact\"" | "\"Not_Applicable\""
+
+# --- mitre_technique: formato validado por padrão (não enum fechado) -------
+# Aceita T#### (técnica) ou T####.### (sub-técnica). Também aceita "N/A"
+# para eventos que não mapeiam para nenhuma técnica conhecida.
+technique ::= "\"" ( "T" digit digit digit digit ( "." digit digit digit )? | "N/A" ) "\""
+
+# --- confidence: 0.00 a 1.00, duas casas decimais ---------------------------
+confidence ::= ( "0." digit digit | "1.00" )
+
+# --- reasoning: string livre, limitada a 500 caracteres ---------------------
+reasoning ::= "\"" reasoning-char* "\""
+reasoning-char ::= [^"\\\x00-\x1f] | "\\" escape
+escape ::= ["\\/bfnrt] | "u" hex hex hex hex
+
+digit ::= [0-9]
+hex ::= [0-9a-fA-F]
+ws ::= [ \t\n]*
+
