@@ -1,0 +1,89 @@
+# =============================================================================
+# docker-compose.yml
+#
+# Sobe o llama-server (llama.cpp) em container, isolado do restante do
+# sistema. O classificador Python (src/main.py) roda FORA deste container
+# (nativamente ou em outro container) e se conecta via HTTP em
+# http://localhost:8080.
+#
+# Por que containerizar o llama-server e não o classificador Python:
+#   - Evita compilar llama.cpp/CUDA manualmente no host; a imagem oficial
+#     já vem com os binários prontos (CPU ou CUDA).
+#   - Isola dependências pesadas (drivers CUDA, libs) do restante do sistema.
+#   - Facilita trocar de modelo/versão do llama.cpp sem afetar o classificador.
+#   - O classificador Python é leve (só 'requests') e ganha pouco em rodar
+#     containerizado; mantê-lo nativo simplifica o acesso à pasta 'data/'
+#     e aos arquivos de saída.
+#
+# Duas variantes abaixo: GPU (NVIDIA) e CPU-only. Use apenas uma por vez.
+# =============================================================================
+
+services:
+
+  # --- Variante GPU (NVIDIA) -------------------------------------------------
+  # Requer NVIDIA Container Toolkit instalado no host
+  # (https://github.com/NVIDIA/nvidia-container-toolkit).
+  llama-server-gpu:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    container_name: llama-server-gpu
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${MODELS_DIR:-./models}:/models:ro
+    command: >
+      --model /models/${MODEL_FILENAME:-model.gguf}
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size ${N_CTX:-8192}
+      --threads ${N_THREADS:-8}
+      --n-gpu-layers ${N_GPU_LAYERS:-35}
+      --batch-size ${N_BATCH:-512}
+      --flash-attn
+      --log-disable
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles: ["gpu"]
+
+  # --- Variante CPU-only -------------------------------------------------------
+  llama-server-cpu:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: llama-server-cpu
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${MODELS_DIR:-./models}:/models:ro
+    command: >
+      --model /models/${MODEL_FILENAME:-model.gguf}
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size ${N_CTX:-8192}
+      --threads ${N_THREADS:-8}
+      --n-gpu-layers 0
+      --batch-size ${N_BATCH:-512}
+      --log-disable
+    restart: unless-stopped
+    profiles: ["cpu"]
+
+# =============================================================================
+# USO:
+#   GPU: docker compose --profile gpu up -d llama-server-gpu
+#   CPU: docker compose --profile cpu up -d llama-server-cpu
+#
+# Variáveis de ambiente (crie um arquivo .env na raiz do projeto):
+#   MODELS_DIR=/caminho/para/seus/modelos/gguf
+#   MODEL_FILENAME=llama-3-8b-instruct.Q4_K_M.gguf
+#   N_CTX=8192
+#   N_THREADS=8
+#   N_GPU_LAYERS=35
+#   N_BATCH=512
+#
+# IMPORTANTE: ajuste também config/models.json para apontar server_port=8080
+# (ou a porta que você mapear aqui) e server_host=127.0.0.1, já que o
+# classificador roda fora do container e acessa via porta publicada no host.
+# =============================================================================
